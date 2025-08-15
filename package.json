@@ -21,6 +21,7 @@
     "jose": "^6.0.12",
     "nanoid": "^5.1.5",
     "next": "15.4.6",
+    "qr-code-styling": "^1.9.2",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
