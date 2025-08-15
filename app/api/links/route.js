@@ -10,7 +10,7 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 // --- helpers ---
 async function requireUserId() {
-  const store = await cookies();
+  const store = await cookies(); // Next 15: await
   const token = store.get(COOKIE)?.value;
   if (!token) throw new Error("unauthorized");
   const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
@@ -24,7 +24,10 @@ export async function POST(req) {
     const body = await req.json();
     const parsed = createLinkSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: parsed.error.issues[0]?.message || "Invalid input" },
+        { status: 400 }
+      );
     }
 
     const { longUrl } = parsed.data;
@@ -48,8 +51,8 @@ export async function POST(req) {
         });
         break;
       } catch (e) {
-        // unique violation -> regenerate slug and retry
-        if (e?.code === "P2002" || (e?.message || "").includes("Unique constraint")) {
+        const msg = typeof e?.message === "string" ? e.message : "";
+        if (e?.code === "P2002" || msg.includes("Unique constraint")) {
           slug = generateSlug();
           continue;
         }
@@ -60,12 +63,12 @@ export async function POST(req) {
       return NextResponse.json({ ok: false, error: "Could not create link" }, { status: 500 });
     }
 
-    const origin = req.nextUrl.origin || process.env.APP_BASE_URL || "http://localhost:3000";
+    const origin = req.nextUrl?.origin || process.env.APP_BASE_URL || "http://localhost:3000";
     const shortUrl = `${origin}/r/${link.slug}`;
 
     return NextResponse.json({ ok: true, link, shortUrl });
   } catch (e) {
-    if (e.message === "unauthorized") {
+    if (e?.message === "unauthorized") {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
     console.error(e);
@@ -73,32 +76,63 @@ export async function POST(req) {
   }
 }
 
-// --- GET /api/links: list current user's links (simple pagination) ---
+// --- GET /api/links: list with search & date filters ---
 export async function GET(req) {
   try {
     const userId = await requireUserId();
 
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get("page") || "1"));
-    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "10")));
+    const pageSize = Math.min(100, Math.max(1, Number(searchParams.get("pageSize") || "12")));
+
+    const q = (searchParams.get("q") || "").trim();
+    const from = searchParams.get("from"); // YYYY-MM-DD
+    const to = searchParams.get("to");     // YYYY-MM-DD
+
+    const where = { userId };
+
+    if (q) {
+      where.OR = [
+        { slug: { contains: q, mode: "insensitive" } },
+        { longUrl: { contains: q, mode: "insensitive" } },
+      ];
+    }
+
+    if (from || to) {
+      where.createdAt = {};
+      if (from) where.createdAt.gte = new Date(from);
+      if (to) {
+        const dt = new Date(to);
+        dt.setHours(23, 59, 59, 999); // include the entire 'to' day
+        where.createdAt.lte = dt;
+      }
+    }
 
     const [items, total] = await Promise.all([
       prisma.link.findMany({
-        where: { userId },
+        where,
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * pageSize,
         take: pageSize,
-        select: { id: true, slug: true, longUrl: true, clicksCount: true, isActive: true, createdAt: true, expiresAt: true },
+        select: {
+          id: true,
+          slug: true,
+          longUrl: true,
+          clicksCount: true,
+          isActive: true,
+          createdAt: true,
+          expiresAt: true,
+        },
       }),
-      prisma.link.count({ where: { userId } }),
+      prisma.link.count({ where }),
     ]);
 
-    const origin = req.nextUrl.origin || process.env.APP_BASE_URL || "http://localhost:3000";
+    const origin = req.nextUrl?.origin || process.env.APP_BASE_URL || "http://localhost:3000";
     const withShort = items.map((it) => ({ ...it, shortUrl: `${origin}/r/${it.slug}` }));
 
     return NextResponse.json({ ok: true, items: withShort, total, page, pageSize });
   } catch (e) {
-    if (e.message === "unauthorized") {
+    if (e?.message === "unauthorized") {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
     console.error(e);
