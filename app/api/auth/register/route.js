@@ -1,12 +1,15 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { hashPassword, createSession } from "@/lib/auth";
 import { registerSchema } from "@/lib/validators";
+import bcrypt from "bcryptjs";
+import { createJwt, setSessionCookieOnResponse } from "@/lib/auth";
 
 export async function POST(req) {
   try {
-    const json = await req.json();
-    const parsed = registerSchema.safeParse(json);
+    const body = await req.json();
+    const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { ok: false, error: parsed.error.issues[0]?.message || "Invalid input" },
@@ -16,32 +19,41 @@ export async function POST(req) {
 
     const { name, surname, dob, country, email, password } = parsed.data;
 
-    // Check if user exists
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      return NextResponse.json({ ok: false, error: "Email already in use" }, { status: 409 });
+    // check existing
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) {
+      return NextResponse.json(
+        { ok: false, error: "Email is already registered" },
+        { status: 409 }
+      );
     }
 
-    const passwordHash = await hashPassword(password);
+    // hash password
+    const passwordHash = await bcrypt.hash(password, 10);
 
+    // create user
     const user = await prisma.user.create({
       data: {
-        name,
-        surname,
-        dob: new Date(dob),            // expects YYYY-MM-DD from the form
-        country,
         email,
         password: passwordHash,
+        name,
+        surname,
+        dob: new Date(dob),
+        country,
       },
       select: { id: true, email: true },
     });
 
-    // Auto sign-in
-    await createSession(user);
-
-    return NextResponse.json({ ok: true });
+    // issue JWT & set cookie on the response
+    const token = await createJwt(user);
+    const res = NextResponse.json({ ok: true, user });
+    setSessionCookieOnResponse(res, token);
+    return res;
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ ok: false, error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: "Something went wrong" },
+      { status: 500 }
+    );
   }
 }

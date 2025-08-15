@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import CopyButton from "@/components/ui/CopyButton";
+import Image from "next/image";
 
 export default function DashboardHome() {
   const [longUrl, setLongUrl] = useState("");
@@ -146,7 +147,7 @@ export default function DashboardHome() {
 
         {qrPng && (
           <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-            <img
+            <Image
               src={qrPng}
               alt="QR preview"
               className="h-40 w-40 rounded-md border border-orange-200 bg-white p-2"
