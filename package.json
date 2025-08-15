@@ -9,7 +9,9 @@
     "lint": "next lint",
     "prisma:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
+    "vercel-build": "npm run prisma:deploy && next build"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
