@@ -1,32 +1,37 @@
-// app/api/auth/me/route.js
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 import { jwtVerify } from "jose";
+import { profileSchema } from "@/lib/validators";
 
 const COOKIE = "urlx_session";
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 async function requireUserId() {
-  const c = await cookies();                        // ✅ must await in App Router
-  const token = c.get(COOKIE)?.value;
+  const store = await cookies();
+  const token = store.get(COOKIE)?.value;
   if (!token) throw new Error("unauthorized");
   const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
   return payload.sub;
 }
 
-export async function GET() {
+export async function PATCH(req) {
   try {
     const userId = await requireUserId();
-    const user = await prisma.user.findUnique({
+    const body = await req.json();
+    const parsed = profileSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message || "Invalid input" }, { status: 400 });
+    }
+    const { country } = parsed.data;
+
+    const updated = await prisma.user.update({
       where: { id: userId },
-      select: {
-        id: true, email: true, name: true, surname: true,
-        country: true, createdAt: true, updatedAt: true,
-      },
+      data: { country },
+      select: { id: true, email: true, country: true },
     });
-    if (!user) return NextResponse.json({ ok: false, error: "User not found" }, { status: 404 });
-    return NextResponse.json({ ok: true, user });
+
+    return NextResponse.json({ ok: true, user: updated });
   } catch (e) {
     if (e?.message === "unauthorized") {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
