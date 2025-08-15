@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
-import UAParser from "ua-parser-js";
+import {UAParser} from "ua-parser-js";
 
 function hashIp(ip) {
   try { return crypto.createHash("sha256").update(ip || "").digest("hex"); }
