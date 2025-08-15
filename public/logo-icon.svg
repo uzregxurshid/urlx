@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="56" ry="56" fill="url(#g)"/>
+  <!-- Broken-link X (four rounded strokes with a gap in the center) -->
+  <g stroke="#ffffff" stroke-width="42" stroke-linecap="round" fill="none">
+    <path d="M150 150 L236 236"/>
+    <path d="M276 276 L362 362"/>
+    <path d="M362 150 L276 236"/>
+    <path d="M236 276 L150 362"/>
+  </g>
+</svg>

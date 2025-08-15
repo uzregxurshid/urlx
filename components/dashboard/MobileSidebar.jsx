@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { navItems } from "./Sidebar";
+import Image from "next/image";
 
 export default function MobileSidebar({ open, onClose }) {
   const pathname = usePathname();
@@ -32,8 +33,7 @@ export default function MobileSidebar({ open, onClose }) {
       >
         <div className="h-14 px-4 border-b border-orange-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="inline-block h-8 w-8 rounded-md bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm" />
-            <span className="font-semibold text-orange-800">urlx</span>
+                      <Image src="/logo-wordmark.svg" alt="urlx" width={110} height={24} className="hidden sm:block" />
           </div>
           <button
             onClick={onClose}

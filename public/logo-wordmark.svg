@@ -1,0 +1,12 @@
+<svg width="1200" height="260" viewBox="0 0 1200 260" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .brand { font: 800 164px/1 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Inter, "Noto Sans", Arial; }
+  </style>
+
+  <!-- text -->
+  <text x="10" y="190" class="brand" fill="#0f172a">url</text>
+  <text x="510" y="190" class="brand" fill="#ea580c">x</text>
+
+  <!-- subtle accent under the whole word -->
+  <rect x="12" y="208" width="620" height="10" rx="5" fill="#fb923c" />
+</svg>

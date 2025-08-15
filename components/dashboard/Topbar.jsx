@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bars3Icon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 export default function Topbar({ onMenuClick }) {
   const [user, setUser] = useState(null);
@@ -35,9 +36,8 @@ export default function Topbar({ onMenuClick }) {
           >
             <Bars3Icon className="h-5 w-5" />
           </button>
+          <Image src="/logo-wordmark.svg" alt="urlx" width={110} height={24} className="hidden sm:block" />
 
-          <span className="inline-block h-8 w-8 rounded-md bg-gradient-to-br from-orange-500 to-amber-500 shadow-sm" />
-          <span className="font-semibold tracking-tight text-orange-800">urlx Dashboard</span>
         </div>
 
         <div className="flex items-center gap-3">
