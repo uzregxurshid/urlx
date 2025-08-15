@@ -11,7 +11,7 @@ export default function LinkCard({
   onSelect,
   onDelete,
   deleting = false,
-  onToggle,       // optional: activate/deactivate
+  onToggle,
   toggling = false,
 }) {
   const dom = domainOf(item.longUrl);
@@ -30,9 +30,21 @@ export default function LinkCard({
             className="h-5 w-5 rounded shrink-0"
             onError={(e) => { e.currentTarget.style.visibility = "hidden"; }}
           />
-        <div className="text-sm min-w-0">
-            <div className="font-semibold text-orange-800 truncate">{dom || item.longUrl}</div>
-            <div className="text-orange-900/70 truncate">{item.longUrl}</div>
+          <div className="text-sm min-w-0">
+            {/* domain / title with tooltip */}
+            <div
+              className="font-semibold text-orange-800 truncate max-w-[min(70vw,32rem)]"
+              title={dom || item.longUrl}
+            >
+              {dom || item.longUrl}
+            </div>
+            {/* long URL with tooltip */}
+            <div
+              className="text-orange-900/70 truncate max-w-[min(70vw,32rem)]"
+              title={item.longUrl}
+            >
+              {item.longUrl}
+            </div>
           </div>
         </div>
 
@@ -94,8 +106,9 @@ export default function LinkCard({
         <a
           href={item.shortUrl}
           target="_blank"
+          rel="noreferrer noopener"
           className={`underline ${item.isActive ? "text-orange-700 hover:text-orange-800" : "text-orange-900/50 pointer-events-none cursor-not-allowed"}`}
-          title={item.isActive ? "" : "Link is paused"}
+          title={item.shortUrl}
         >
           {item.shortUrl}
         </a>
